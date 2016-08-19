@@ -24,7 +24,7 @@ from setuptools import setup
 required_packages = [
     "GitPython",
     "jinja2",
-    "osa_differ>=0.0.6",
+    "osa_differ>=0.0.7",
     "requests"
 ]
 
