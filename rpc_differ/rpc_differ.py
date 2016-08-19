@@ -30,8 +30,8 @@ def create_parser():
     description = """RPC Release Diff Generator
 --------------------------
 
-Finds changes in OpenStack projects and OpenStack-Ansible roles between two
-commits in OpenStack-Ansible.
+Finds changes in OpenStack-Ansible, OpenStack-Ansible roles, and OpenStack
+projects between two RPC-OpenStack revisions.
 
 """
 
