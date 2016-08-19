@@ -224,12 +224,27 @@ def run_rpc_differ():
     rpc_new_commit = args.new_commit[0]
     rpc_repo_dir = "{0}/rpc-openstack".format(storage_directory)
 
-    # Generate OpenStack-Ansible report header.
+    # Generate RPC report header.
     report_rst = make_rpc_report(rpc_repo_dir,
                                  rpc_old_commit,
                                  rpc_new_commit,
                                  args)
 
+    # Get the list of RPC roles from the newer and older commits.
+    role_yaml = osa_differ.get_roles(rpc_repo_dir, rpc_old_commit)
+    role_yaml_latest = osa_differ.get_roles(rpc_repo_dir, rpc_new_commit)
+
+    # Generate the role report.
+    report_rst += ("RPC-OpenStack Roles\n"
+                   "-------------------")
+    report_rst += osa_differ.make_report(storage_directory,
+                                         role_yaml,
+                                         role_yaml_latest,
+                                         args.update)
+
+    report_rst += "\n"
+
+    # Generate OpenStack-Ansible report.
     osa_old_commit, osa_new_commit = get_osa_commits(rpc_repo_dir,
                                                      rpc_old_commit,
                                                      rpc_new_commit)
@@ -240,7 +255,7 @@ def run_rpc_differ():
                                              osa_new_commit,
                                              args)
 
-    # Get the list of OpenStack roles from the newer and older commits.
+    # Get the list of OpenStack-Ansible roles from the newer and older commits.
     role_yaml = osa_differ.get_roles(osa_repo_dir, osa_old_commit)
     role_yaml_latest = osa_differ.get_roles(osa_repo_dir, osa_new_commit)
 
