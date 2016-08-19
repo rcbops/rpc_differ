@@ -36,7 +36,7 @@ setup(
     version='0.0.2',
     author='Major Hayden',
     author_email='major@mhtx.net',
-    description="Find changes between RPC versions",
+    description="Find changes between RPC-OpenStack revisions",
     install_requires=required_packages,
     packages=['rpc_differ'],
     include_package_data=True,
