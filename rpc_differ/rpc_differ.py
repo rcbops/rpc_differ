@@ -267,16 +267,9 @@ def run_rpc_differ():
                                          role_yaml_latest,
                                          args.update)
 
-    # Get the list of OpenStack projects from newer commit and older commit.
-    yaml_files = [
-        'playbooks/defaults/repo_packages/openstack_services.yml',
-        'playbooks/defaults/repo_packages/openstack_other.yml'
-    ]
     project_yaml = osa_differ.get_projects(osa_repo_dir,
-                                           yaml_files,
                                            osa_old_commit)
     project_yaml_latest = osa_differ.get_projects(osa_repo_dir,
-                                                  yaml_files,
                                                   osa_new_commit)
 
     # Generate the project report.
