@@ -66,6 +66,12 @@ projects between two RPC-OpenStack revisions.
         help="Git repo storage directory (default: ~/.osa-differ)",
     )
     parser.add_argument(
+        '-r', '--rpc-repo-url',
+        action='store',
+        default="https://github.com/rcbops/rpc-openstack",
+        help="Github repository for the rpc-openstack project"
+    )
+    parser.add_argument(
         '-u', '--update',
         action='store_true',
         default=False,
@@ -123,7 +129,7 @@ def get_osa_commits(repo_dir, old_commit, new_commit):
 def make_rpc_report(repo_dir, old_commit, new_commit,
                     args):
     """Create initial RST report header for OpenStack-Ansible."""
-    rpc_repo_url = "https://github.com/rcbops/rpc-openstack"
+    rpc_repo_url = args.rpc_repo_url
     osa_differ.update_repo(repo_dir, rpc_repo_url, args.update)
 
     # Are these commits valid?
