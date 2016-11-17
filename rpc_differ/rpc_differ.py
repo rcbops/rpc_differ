@@ -21,7 +21,7 @@ import sys
 
 from git import Repo
 import jinja2
-from osa_differ import osa_differ
+from osa_differ import osa_differ, exceptions
 import requests
 
 
@@ -130,7 +130,20 @@ def make_rpc_report(repo_dir, old_commit, new_commit,
     osa_differ.validate_commits(repo_dir, [old_commit, new_commit])
 
     # Do we have a valid commit range?
-    osa_differ.validate_commit_range(repo_dir, old_commit, new_commit)
+    # NOTE:
+    # An exception is thrown by osa_differ if these two commits
+    # are the the same, but it is sometimes necessary to compare
+    # two RPC tags that have the same OSA SHA. For example,
+    # comparing two tags that only have differences between the
+    # two RPCO commit, but no differences between the OSA SHAs
+    # that correspond to those two commits.
+    # To handle this case, the exception will be caught and flow
+    # of execution will continue normally.
+    try:
+        osa_differ.validate_commit_range(repo_dir, old_commit, new_commit)
+    except exceptions.InvalidCommitRangeException:
+        pass
+
 
     # Get the commits in the range
     commits = osa_differ.get_commits(repo_dir, old_commit, new_commit)
@@ -250,10 +263,22 @@ def run_rpc_differ():
                                                      rpc_new_commit)
 
     osa_repo_dir = "{0}/openstack-ansible".format(storage_directory)
-    report_rst += osa_differ.make_osa_report(osa_repo_dir,
-                                             osa_old_commit,
-                                             osa_new_commit,
-                                             args)
+    # NOTE:
+    # An exception is thrown by osa_differ if these two commits
+    # are the the same, but it is sometimes necessary to compare
+    # two RPC tags that have the same OSA SHA. For example,
+    # comparing two tags that only have differences between the
+    # two RPCO commit, but no differences between the OSA SHAs
+    # that correspond to those two commits.
+    # To handle this case, the exception will be caught and flow
+    # of execution will continue normally.
+    try:
+        report_rst += osa_differ.make_osa_report(osa_repo_dir,
+                                                 osa_old_commit,
+                                                 osa_new_commit,
+                                                 args)
+    except exceptions.InvalidCommitRangeException:
+        pass
 
     # Get the list of OpenStack-Ansible roles from the newer and older commits.
     role_yaml = osa_differ.get_roles(osa_repo_dir, osa_old_commit)
