@@ -254,7 +254,7 @@ def run_rpc_differ():
     role_yaml_latest = osa_differ.get_roles(rpc_repo_dir, rpc_new_commit)
 
     # Generate the role report.
-    report_rst += ("RPC-OpenStack Roles\n"
+    report_rst += ("\nRPC-OpenStack Roles\n"
                    "-------------------")
     report_rst += osa_differ.make_report(storage_directory,
                                          role_yaml,
@@ -291,7 +291,7 @@ def run_rpc_differ():
     role_yaml_latest = osa_differ.get_roles(osa_repo_dir, osa_new_commit)
 
     # Generate the role report.
-    report_rst += ("OpenStack-Ansible Roles\n"
+    report_rst += ("\nOpenStack-Ansible Roles\n"
                    "-----------------------")
     report_rst += osa_differ.make_report(storage_directory,
                                          role_yaml,
