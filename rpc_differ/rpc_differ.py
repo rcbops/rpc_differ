@@ -15,6 +15,7 @@
 """Analyzes the differences between two OpenStack-Ansible commits."""
 import argparse
 import json
+import logging
 import os
 import sys
 
@@ -23,6 +24,13 @@ from git import Repo
 import jinja2
 from osa_differ import osa_differ, exceptions
 import requests
+
+
+# Configure logging
+log = logging.getLogger()
+log.setLevel(logging.ERROR)
+stdout_handler = logging.StreamHandler(sys.stdout)
+log.addHandler(stdout_handler)
 
 
 def create_parser():
@@ -58,6 +66,12 @@ projects between two RPC-OpenStack revisions.
         action='store_true',
         default=False,
         help="Enable debug output",
+    )
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        default=False,
+        help="Enable verbose output",
     )
     parser.add_argument(
         '-d', '--directory',
@@ -229,6 +243,12 @@ def render_template(template_file, template_vars):
 def run_rpc_differ():
     """The script starts here."""
     args = parse_arguments()
+
+    # Set up DEBUG logging if needed
+    if args.debug:
+        log.setLevel(logging.DEBUG)
+    elif args.verbose:
+        log.setLevel(logging.INFO)
 
     # Create the storage directory if it doesn't exist already.
     try:
