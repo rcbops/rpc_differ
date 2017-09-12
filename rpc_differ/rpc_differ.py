@@ -33,6 +33,8 @@ log.setLevel(logging.ERROR)
 stdout_handler = logging.StreamHandler(sys.stdout)
 log.addHandler(stdout_handler)
 
+class SHANotFound(Exception):
+    pass
 
 def create_parser():
     """Setup argument Parsing."""
@@ -144,6 +146,10 @@ def get_osa_commit(repo, ref):
                 if match:
                     osa_commit = match.groups()[0]
                     break
+            else:
+                raise SHANotFound(
+                    "Cannot find OSA SHA in submodule or script: {}".format(
+                        functions_path))
     return osa_commit
 
 
