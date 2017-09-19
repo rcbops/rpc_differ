@@ -15,7 +15,9 @@
 """Analyzes the differences between two OpenStack-Ansible commits."""
 import argparse
 import json
+import logging
 import os
+import re
 import sys
 
 
@@ -24,6 +26,15 @@ import jinja2
 from osa_differ import osa_differ, exceptions
 import requests
 
+
+# Configure logging
+log = logging.getLogger()
+log.setLevel(logging.ERROR)
+stdout_handler = logging.StreamHandler(sys.stdout)
+log.addHandler(stdout_handler)
+
+class SHANotFound(Exception):
+    pass
 
 def create_parser():
     """Setup argument Parsing."""
@@ -58,6 +69,12 @@ projects between two RPC-OpenStack revisions.
         action='store_true',
         default=False,
         help="Enable debug output",
+    )
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        default=False,
+        help="Enable verbose output",
     )
     parser.add_argument(
         '-d', '--directory',
@@ -111,19 +128,29 @@ projects between two RPC-OpenStack revisions.
     return parser
 
 
-def get_osa_commits(repo_dir, old_commit, new_commit):
-    """Get OSA commits from the RPC repository."""
-    repo = Repo(repo_dir)
-
-    repo.head.reference = repo.commit(old_commit)
+def get_osa_commit(repo, ref):
+    """Get the OSA sha referenced by an RPCO Repo."""
+    repo.head.reference = repo.commit(ref)
     repo.head.reset(index=True, working_tree=True)
-    old_osa_commit = repo.submodules['openstack-ansible'].hexsha
-
-    repo.head.reference = repo.commit(new_commit)
-    repo.head.reset(index=True, working_tree=True)
-    new_osa_commit = repo.submodules['openstack-ansible'].hexsha
-
-    return (old_osa_commit, new_osa_commit)
+    try:
+        osa_commit = repo.submodules['openstack-ansible'].hexsha
+    except IndexError:
+        # This branch doesn't use a submodule for OSA
+        # Pull the SHA out of functions.sh
+        quoted_re = re.compile('OSA_RELEASE:-"([^"]+)"')
+        functions_path = \
+            "{}/scripts/functions.sh".format(repo.working_tree_dir)
+        with open(functions_path, "r") as funcs:
+            for line in funcs.readlines():
+                match = quoted_re.search(line)
+                if match:
+                    osa_commit = match.groups()[0]
+                    break
+            else:
+                raise SHANotFound(
+                    "Cannot find OSA SHA in submodule or script: {}".format(
+                        functions_path))
+    return osa_commit
 
 
 def make_rpc_report(repo_dir, old_commit, new_commit,
@@ -230,6 +257,12 @@ def run_rpc_differ():
     """The script starts here."""
     args = parse_arguments()
 
+    # Set up DEBUG logging if needed
+    if args.debug:
+        log.setLevel(logging.DEBUG)
+    elif args.verbose:
+        log.setLevel(logging.INFO)
+
     # Create the storage directory if it doesn't exist already.
     try:
         storage_directory = osa_differ.prepare_storage_dir(args.directory)
@@ -264,9 +297,12 @@ def run_rpc_differ():
     report_rst += "\n"
 
     # Generate OpenStack-Ansible report.
-    osa_old_commit, osa_new_commit = get_osa_commits(rpc_repo_dir,
-                                                     rpc_old_commit,
-                                                     rpc_new_commit)
+    repo = Repo(rpc_repo_dir)
+    osa_old_commit = get_osa_commit(repo, rpc_old_commit)
+    osa_new_commit = get_osa_commit(repo, rpc_new_commit)
+    log.debug("OSA Commits old:{old} new:{new}".format(old=osa_old_commit,
+                                                       new=osa_new_commit))
+
 
     osa_repo_dir = "{0}/openstack-ansible".format(storage_directory)
     # NOTE:
