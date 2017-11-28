@@ -137,7 +137,7 @@ def get_osa_commit(repo, ref):
     except IndexError:
         # This branch doesn't use a submodule for OSA
         # Pull the SHA out of functions.sh
-        quoted_re = re.compile('OSA_RELEASE:-"([^"]+)"')
+        quoted_re = re.compile('OSA_RELEASE:-?"?([^"}]+)["}]')
         functions_path = \
             "{}/scripts/functions.sh".format(repo.working_tree_dir)
         with open(functions_path, "r") as funcs:
