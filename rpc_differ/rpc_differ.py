@@ -83,6 +83,12 @@ projects between two RPC-OpenStack revisions.
         help="Git repo storage directory (default: ~/.osa-differ)",
     )
     parser.add_argument(
+        '-rr', '--role-requirements',
+        action='store',
+        default='ansible-role-requirements.yml',
+        help="Name of the ansible role requirements file to read",
+    )
+    parser.add_argument(
         '-r', '--rpc-repo-url',
         action='store',
         default="https://github.com/rcbops/rpc-openstack",
@@ -283,8 +289,12 @@ def run_rpc_differ():
                                  args)
 
     # Get the list of RPC roles from the newer and older commits.
-    role_yaml = osa_differ.get_roles(rpc_repo_dir, rpc_old_commit)
-    role_yaml_latest = osa_differ.get_roles(rpc_repo_dir, rpc_new_commit)
+    role_yaml = osa_differ.get_roles(rpc_repo_dir,
+                                     rpc_old_commit,
+                                     args.role_requirements)
+    role_yaml_latest = osa_differ.get_roles(rpc_repo_dir,
+                                     rpc_old_commit,
+                                     args.role_requirements)
 
     # Generate the role report.
     report_rst += ("\nRPC-OpenStack Roles\n"
@@ -323,8 +333,13 @@ def run_rpc_differ():
         pass
 
     # Get the list of OpenStack-Ansible roles from the newer and older commits.
-    role_yaml = osa_differ.get_roles(osa_repo_dir, osa_old_commit)
-    role_yaml_latest = osa_differ.get_roles(osa_repo_dir, osa_new_commit)
+    role_yaml = osa_differ.get_roles(osa_repo_dir,
+                                     osa_old_commit,
+                                     args.role_requirements)
+    role_yaml_latest = osa_differ.get_roles(osa_repo_dir,
+                                            osa_new_commit,
+                                            args.role_requirements)
+
 
     # Generate the role report.
     report_rst += ("\nOpenStack-Ansible Roles\n"
