@@ -2,3 +2,4 @@ GitPython
 jinja2
 osa_differ>=0.0.6
 requests
+yaml
