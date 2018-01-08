@@ -255,7 +255,7 @@ def publish_report(report, args, old_commit, new_commit):
 
     if args.file is not None:
         with open(args.file, 'w') as f:
-            f.write(report)
+            f.write(report.encode('utf-8'))
         output += "\nReport written to file: {0}".format(args.file)
 
     return output
