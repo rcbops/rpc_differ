@@ -22,9 +22,13 @@ import sys
 
 
 from git import Repo
+
 import jinja2
-from osa_differ import osa_differ, exceptions
+
+from osa_differ import exceptions, osa_differ
+
 import requests
+
 import yaml
 
 
@@ -34,8 +38,15 @@ log.setLevel(logging.ERROR)
 stdout_handler = logging.StreamHandler(sys.stdout)
 log.addHandler(stdout_handler)
 
+# Additional constants
+ROLE_REQ_FILE = 'ansible-role-requirements.yml'
+
+
 class SHANotFound(Exception):
+    """Exception handler for situations where the specified SHA is missing."""
+
     pass
+
 
 def create_parser():
     """Setup argument Parsing."""
@@ -86,7 +97,7 @@ projects between two RPC-OpenStack revisions.
     parser.add_argument(
         '-rr', '--role-requirements',
         action='store',
-        default='ansible-role-requirements.yml',
+        default=ROLE_REQ_FILE,
         help="Name of the ansible role requirements file to read",
     )
     parser.add_argument(
@@ -157,7 +168,9 @@ def get_osa_commit(repo, ref, rpc_product=None):
             with open(release_path) as f:
                 rpc_release_data = yaml.safe_load(f.read())
 
-            release_data = rpc_release_data['rpc_product_releases'][rpc_product]
+            rpc_product_releases = rpc_release_data['rpc_product_releases']
+            release_data = rpc_product_releases[rpc_product]
+
             return release_data['osa_release']
         elif os.path.exists(functions_path):
             # This branch doesn't use a submodule for OSA
@@ -170,8 +183,8 @@ def get_osa_commit(repo, ref, rpc_product=None):
                         return match.groups()[0]
                 else:
                     raise SHANotFound(
-                        "Cannot find OSA SHA in submodule or script: {}".format(
-                            functions_path))
+                        ("Cannot find OSA SHA in submodule or "
+                         "script: {}".format(functions_path)))
         else:
             raise SHANotFound('No OSA SHA was able to be derived.')
 
@@ -199,7 +212,6 @@ def make_rpc_report(repo_dir, old_commit, new_commit,
         osa_differ.validate_commit_range(repo_dir, old_commit, new_commit)
     except exceptions.InvalidCommitRangeException:
         pass
-
 
     # Get the commits in the range
     commits = osa_differ.get_commits(repo_dir, old_commit, new_commit)
@@ -316,7 +328,7 @@ def run_rpc_differ():
         role_yaml = osa_differ.get_roles(
             rpc_repo_dir,
             rpc_old_commit,
-            'ansible-role-requirements.yml'
+            ROLE_REQ_FILE
         )
 
     try:
@@ -329,7 +341,7 @@ def run_rpc_differ():
         role_yaml_latest = osa_differ.get_roles(
             rpc_repo_dir,
             rpc_old_commit,
-            'ansible-role-requirements.yml'
+            ROLE_REQ_FILE
         )
 
     # Generate the role report.
@@ -352,7 +364,6 @@ def run_rpc_differ():
                                     rpc_product=args.rpc_product)
     log.debug("OSA Commits old:{old} new:{new}".format(old=osa_old_commit,
                                                        new=osa_new_commit))
-
 
     osa_repo_dir = "{0}/openstack-ansible".format(storage_directory)
     # NOTE:
@@ -380,7 +391,7 @@ def run_rpc_differ():
     except IOError:
         role_yaml = osa_differ.get_roles(osa_repo_dir,
                                          osa_old_commit,
-                                         'ansible-role-requirements.yml')
+                                         ROLE_REQ_FILE)
     try:
         role_yaml_latest = osa_differ.get_roles(osa_repo_dir,
                                                 osa_new_commit,
@@ -388,7 +399,7 @@ def run_rpc_differ():
     except IOError:
         role_yaml_latest = osa_differ.get_roles(osa_repo_dir,
                                                 osa_new_commit,
-                                                'ansible-role-requirements.yml')
+                                                ROLE_REQ_FILE)
 
     # Generate the role report.
     report_rst += ("\nOpenStack-Ansible Roles\n"
