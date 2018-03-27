@@ -154,8 +154,7 @@ projects between two RPC-OpenStack revisions.
 
 def get_osa_commit(repo, ref, rpc_product=None):
     """Get the OSA sha referenced by an RPCO Repo."""
-    repo.head.reference = repo.commit(ref)
-    repo.head.reset(index=True, working_tree=True)
+    osa_differ.checkout(repo, ref)
 
     functions_path = os.path.join(repo.working_tree_dir,
                                   'scripts/functions.sh')
