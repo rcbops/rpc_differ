@@ -1,5 +1,5 @@
 GitPython
 jinja2
-osa_differ>=0.3.5
+osa_differ>=0.3.6
 requests
 pyyaml
