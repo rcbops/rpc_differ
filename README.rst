@@ -35,3 +35,4 @@ Found a bug? Have a pull request?
 Feel free to open issues here in GitHub or send over a pull request.
 
 *-- Major*
+Test
