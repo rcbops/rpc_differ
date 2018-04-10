@@ -24,7 +24,7 @@ from setuptools import setup
 required_packages = [
     "GitPython",
     "jinja2",
-    "osa_differ>=0.3.0",
+    "osa_differ>=0.3.5",
     "requests"
 ]
 
@@ -33,14 +33,14 @@ if sys.version_info < (2, 7):
 
 setup(
     name='rpc_differ',
-    version='0.3.4',
+    version='0.3.5',
     author='Major Hayden',
     author_email='major@mhtx.net',
     description="Find changes between RPC-OpenStack revisions",
     install_requires=required_packages,
     packages=['rpc_differ'],
     include_package_data=True,
-    url='https://github.com/major/rpc_differ',
+    url='https://github.com/rcbops/rpc_differ',
     entry_points='''
         [console_scripts]
         rpc-differ = rpc_differ.rpc_differ:run_rpc_differ

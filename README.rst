@@ -18,7 +18,7 @@ To get the latest development version, install via the git repository:
 
 .. code-block:: console
 
-   pip install git+https://github.com/major/rpc_differ
+   pip install git+https://github.com/rcbops/rpc_differ
 
 Usage
 -----
@@ -27,7 +27,7 @@ The ``rpc_differ`` script takes the same arguments and options as the
 ``osa_differ`` script.  For full usage specifications, please refer to the
 documentation for ``osa_differ``:
 
-* https://github.com/major/osa_differ/blob/master/README.rst
+* https://github.com/rcbops/osa_differ/blob/master/README.rst
 
 Found a bug? Have a pull request?
 ---------------------------------
