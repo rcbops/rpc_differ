@@ -160,32 +160,35 @@ def get_osa_commit(repo, ref, rpc_product=None):
                                   'scripts/functions.sh')
     release_path = os.path.join(repo.working_tree_dir,
                                 'playbooks/vars/rpc-release.yml')
-    try:
+
+    if os.path.exists(release_path):
+        with open(release_path) as f:
+            rpc_release_data = yaml.safe_load(f.read())
+
+        rpc_product_releases = rpc_release_data['rpc_product_releases']
+        release_data = rpc_product_releases[rpc_product]
+
+        return release_data['osa_release']
+
+    elif repo.submodules['openstack-ansible']:
         return repo.submodules['openstack-ansible'].hexsha
-    except IndexError:
-        if os.path.exists(release_path):
-            with open(release_path) as f:
-                rpc_release_data = yaml.safe_load(f.read())
 
-            rpc_product_releases = rpc_release_data['rpc_product_releases']
-            release_data = rpc_product_releases[rpc_product]
+    elif os.path.exists(functions_path):
+        # This branch doesn't use a submodule for OSA
+        # Pull the SHA out of functions.sh
+        quoted_re = re.compile('OSA_RELEASE:-?"?([^"}]+)["}]')
+        with open(functions_path, "r") as funcs:
+            for line in funcs.readlines():
+                match = quoted_re.search(line)
+                if match:
+                    return match.groups()[0]
+            else:
+                raise SHANotFound(
+                    ("Cannot find OSA SHA in submodule or "
+                     "script: {}".format(functions_path)))
 
-            return release_data['osa_release']
-        elif os.path.exists(functions_path):
-            # This branch doesn't use a submodule for OSA
-            # Pull the SHA out of functions.sh
-            quoted_re = re.compile('OSA_RELEASE:-?"?([^"}]+)["}]')
-            with open(functions_path, "r") as funcs:
-                for line in funcs.readlines():
-                    match = quoted_re.search(line)
-                    if match:
-                        return match.groups()[0]
-                else:
-                    raise SHANotFound(
-                        ("Cannot find OSA SHA in submodule or "
-                         "script: {}".format(functions_path)))
-        else:
-            raise SHANotFound('No OSA SHA was able to be derived.')
+    else:
+        raise SHANotFound('No OSA SHA was able to be derived.')
 
 
 def make_rpc_report(repo_dir, old_commit, new_commit,
