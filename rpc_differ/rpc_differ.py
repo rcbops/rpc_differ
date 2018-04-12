@@ -191,14 +191,26 @@ def get_osa_commit(repo, ref, rpc_product=None):
         raise SHANotFound('No OSA SHA was able to be derived.')
 
 
+def validate_rpc_sha(repo_dir, commit):
+    """Validate/update a SHA given for the rpc-openstack repo."""
+
+    # Is the commit valid? Just in case the commit is a
+    # PR ref, we try both the ref given and the ref prepended
+    # with the remote 'origin'.
+    try:
+        osa_differ.validate_commits(repo_dir, [commit])
+    except exceptions.InvalidCommitException:
+        log.debug("The reference {c} cannot be found. Prepending "
+                  "origin remote and retrying.".format(c=commit))
+        commit = 'origin/' + commit
+        osa_differ.validate_commits(repo_dir, [commit])
+
+    return commit
+
+
 def make_rpc_report(repo_dir, old_commit, new_commit,
                     args):
     """Create initial RST report header for OpenStack-Ansible."""
-    rpc_repo_url = args.rpc_repo_url
-    osa_differ.update_repo(repo_dir, rpc_repo_url, args.update)
-
-    # Are these commits valid?
-    osa_differ.validate_commits(repo_dir, [old_commit, new_commit])
 
     # Do we have a valid commit range?
     # NOTE:
@@ -223,7 +235,7 @@ def make_rpc_report(repo_dir, old_commit, new_commit,
         'args': args,
         'repo': 'rpc-openstack',
         'commits': commits,
-        'commit_base_url': osa_differ.get_commit_url(rpc_repo_url),
+        'commit_base_url': osa_differ.get_commit_url(args.rpc_repo_url),
         'old_sha': old_commit,
         'new_sha': new_commit
     }
@@ -308,10 +320,14 @@ def run_rpc_differ():
               "Please create it manually.".format(args.directory))
         sys.exit(1)
 
-    # Assemble some variables for the RPC repository.
-    rpc_old_commit = args.old_commit[0]
-    rpc_new_commit = args.new_commit[0]
+    # Prepare the rpc-openstack repository.
+    rpc_repo_url = args.rpc_repo_url
     rpc_repo_dir = "{0}/rpc-openstack".format(storage_directory)
+    osa_differ.update_repo(rpc_repo_dir, rpc_repo_url, args.update)
+
+    # Validate/update the commits.
+    rpc_old_commit = validate_rpc_sha(rpc_repo_dir, args.old_commit[0])
+    rpc_new_commit = validate_rpc_sha(rpc_repo_dir, args.new_commit[0])
 
     # Generate RPC report header.
     report_rst = make_rpc_report(rpc_repo_dir,
