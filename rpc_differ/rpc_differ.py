@@ -107,6 +107,12 @@ projects between two RPC-OpenStack revisions.
         help="Github repository for the rpc-openstack project"
     )
     parser.add_argument(
+        '--osa-repo-url',
+        action='store',
+        default="https://git.openstack.org/openstack/openstack-ansible",
+        help="URL of the openstack-ansible git repo"
+    )
+    parser.add_argument(
         '-rp', '--rpc-product',
         action='store',
         default="master",
