@@ -124,6 +124,16 @@ projects between two RPC-OpenStack revisions.
         default=False,
         help="Fetch latest changes to repo",
     )
+    parser.add_argument(
+        '--version-mappings',
+        action=osa_differ.VersionMappingsAction,
+        help=(
+            "Map dependency versions in cases where the old version no longer "
+            "exists. The argument should be of the form "
+            "'repo-name;old-version1:new-version1;old-version2:new-version2'."
+        ),
+    )
+
     display_opts = parser.add_argument_group("Limit scope")
     display_opts.add_argument(
         "--skip-projects",
@@ -374,7 +384,8 @@ def run_rpc_differ():
     report_rst += osa_differ.make_report(storage_directory,
                                          role_yaml,
                                          role_yaml_latest,
-                                         args.update)
+                                         args.update,
+                                         args.version_mappings)
 
     report_rst += "\n"
 
@@ -431,7 +442,8 @@ def run_rpc_differ():
     report_rst += osa_differ.make_report(storage_directory,
                                          role_yaml,
                                          role_yaml_latest,
-                                         args.update)
+                                         args.update,
+                                         args.version_mappings)
 
     project_yaml = osa_differ.get_projects(osa_repo_dir,
                                            osa_old_commit)
@@ -444,7 +456,8 @@ def run_rpc_differ():
     report_rst += osa_differ.make_report(storage_directory,
                                          project_yaml,
                                          project_yaml_latest,
-                                         args.update)
+                                         args.update,
+                                         args.version_mappings)
 
     # Publish report according to the user's request.
     output = publish_report(report_rst,
