@@ -368,13 +368,13 @@ def run_rpc_differ():
     try:
         role_yaml_latest = osa_differ.get_roles(
             rpc_repo_dir,
-            rpc_old_commit,
+            rpc_new_commit,
             args.role_requirements
         )
     except IOError:
         role_yaml_latest = osa_differ.get_roles(
             rpc_repo_dir,
-            rpc_old_commit,
+            rpc_new_commit,
             ROLE_REQ_FILE
         )
 
