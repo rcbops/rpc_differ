@@ -95,6 +95,15 @@ projects between two RPC-OpenStack revisions.
         help="Git repo storage directory (default: ~/.osa-differ)",
     )
     parser.add_argument(
+        '-rroc', '--role-requirements-old-commit',
+        action='store',
+        default=None,
+        help=(
+            "Name of the Ansible role requirements file to read from the old "
+            "commit, defaults to value of `--role-requirements`."
+        ),
+    )
+    parser.add_argument(
         '-rr', '--role-requirements',
         action='store',
         default=ROLE_REQ_FILE,
@@ -111,6 +120,15 @@ projects between two RPC-OpenStack revisions.
         action='store',
         default="https://git.openstack.org/openstack/openstack-ansible",
         help="URL of the openstack-ansible git repo"
+    )
+    parser.add_argument(
+        '-rpoc', '--rpc-product-old-commit',
+        action='store',
+        default=None,
+        help=(
+            "Set the RPC product version for the old commit, defaults to "
+            "value of `--rpc-product`."
+        )
     )
     parser.add_argument(
         '-rp', '--rpc-product',
@@ -262,6 +280,10 @@ def parse_arguments():
     """Parse arguments."""
     parser = create_parser()
     args = parser.parse_args()
+    if not args.role_requirements_old_commit:
+        args.role_requirements_old_commit = args.role_requirements
+    if not args.rpc_product_old_commit:
+        args.rpc_product_old_commit = args.rpc_product
     return args
 
 
@@ -356,7 +378,7 @@ def run_rpc_differ():
         role_yaml = osa_differ.get_roles(
             rpc_repo_dir,
             rpc_old_commit,
-            args.role_requirements
+            args.role_requirements_old_commit
         )
     except IOError:
         role_yaml = osa_differ.get_roles(
@@ -393,7 +415,7 @@ def run_rpc_differ():
     repo = Repo(rpc_repo_dir)
     osa_old_commit = get_osa_commit(repo,
                                     rpc_old_commit,
-                                    rpc_product=args.rpc_product)
+                                    rpc_product=args.rpc_product_old_commit)
     osa_new_commit = get_osa_commit(repo,
                                     rpc_new_commit,
                                     rpc_product=args.rpc_product)
@@ -422,7 +444,7 @@ def run_rpc_differ():
     try:
         role_yaml = osa_differ.get_roles(osa_repo_dir,
                                          osa_old_commit,
-                                         args.role_requirements)
+                                         args.role_requirements_old_commit)
     except IOError:
         role_yaml = osa_differ.get_roles(osa_repo_dir,
                                          osa_old_commit,
